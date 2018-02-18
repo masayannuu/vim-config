@@ -93,6 +93,20 @@ else
 endif
 let g:deoplete#enable_at_startup = 1
 
+" js deoplete
+Plug 'hachibeeDI/deoplete-ternjs', { 'do': 'npm install' }
+" Use deoplete.
+let g:tern_request_timeout = 1
+let g:tern_show_signature_in_pum = '0'  " This do disable full signature type on autocomplete
+
+"Add extra filetypes
+let g:tern#filetypes = [
+                \ 'jsx',
+                \ 'javascript.jsx',
+                \ 'vue',
+                \ '...'
+                \ ]
+
 "*****************************************************************************
 "" Custom bundles
 "*****************************************************************************
@@ -101,7 +115,6 @@ let g:deoplete#enable_at_startup = 1
 "" Go Lang Bundle
 Plug 'fatih/vim-go', {'do': ':GoInstallBinaries'}
 
-
 " html
 "" HTML Bundle
 Plug 'hail2u/vim-css3-syntax'
@@ -109,17 +122,25 @@ Plug 'gorodinskiy/vim-coloresque'
 Plug 'tpope/vim-haml'
 Plug 'mattn/emmet-vim'
 
-
 " javascript
 "" Javascript Bundle
+Plug 'jsx/jsx.vim'
+let g:jsx_ext_required = 0 " Allow JSX in normal JS files
+
 Plug 'jelera/vim-javascript-syntax'
-"" some frameworks syntax
-"" refs:https://qiita.com/park-jh/items/b353319efb1823c36c05
-Plug 'othree/yajs.vim', { 'for': ['javascript', 'javascript.jsx'] }
-Plug 'othree/es.next.syntax.vim', { 'for': ['javascript', 'javascript.jsx'] }
-Plug 'othree/javascript-libraries-syntax.vim', { 'for': ['javascript', 'javascript.jsx'] }
-Plug 'maxmellon/vim-jsx-pretty', { 'for': ['javascript', 'javascript.jsx'] }
-Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
+
+" js syntax highlight
+Plug 'othree/yajs.vim'
+Plug 'othree/es.next.syntax.vim'
+Plug 'maxmellon/vim-jsx-pretty'
+
+let g:jsx_ext_required = 1
+let g:jsx_pragma_required = 0
+
+augroup FiletypeGroup
+    autocmd!
+    au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
+augroup END
 
 " ruby
 Plug 'tpope/vim-rails'
@@ -224,7 +245,6 @@ else
   let g:indentLine_char = '┆'
   let g:indentLine_faster = 1
 
-  
 endif
 
 
@@ -287,8 +307,26 @@ let g:NERDTreeMapOpenInTabSilent = '<RightMouse>'
 let g:NERDTreeWinSize = 50
 let g:NERDTreeShowHidden = 1
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc,*.db,*.sqlite
-nnoremap <silent> <F2> :NERDTreeFind<CR>
-nnoremap <silent> <F3> :NERDTreeToggle<CR>
+nnoremap <silent> <C-f> :NERDTreeFind<CR>
+nnoremap <silent> <C-t> :NERDTreeToggle<CR>
+
+" NERDTress File highlighting
+function! NERDTreeHighlightFile(extension, fg, bg, guifg, guibg)
+ exec 'autocmd filetype nerdtree highlight ' . a:extension .' ctermbg='. a:bg .' ctermfg='. a:fg .' guibg='. a:guibg .' guifg='. a:guifg
+ exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\s\+.*'. a:extension .'$#'
+endfunction
+call NERDTreeHighlightFile('py',     'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('md',     'blue',    'none', '#3366FF', '#151515')
+call NERDTreeHighlightFile('yml',    'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('config', 'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('conf',   'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('json',   'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('html',   'yellow',  'none', 'yellow',  '#151515')
+call NERDTreeHighlightFile('styl',   'cyan',    'none', 'cyan',    '#151515')
+call NERDTreeHighlightFile('css',    'cyan',    'none', 'cyan',    '#151515')
+call NERDTreeHighlightFile('rb',     'Red',     'none', 'red',     '#151515')
+call NERDTreeHighlightFile('js',     'Red',     'none', '#ffa500', '#151515')
+call NERDTreeHighlightFile('php',    'Magenta', 'none', '#ff00ff', '#151515')
 
 " grep.vim
 nnoremap <silent> <leader>f :Rgrep<CR>
@@ -344,6 +382,11 @@ augroup vimrc-make-cmake
   autocmd!
   autocmd FileType make setlocal noexpandtab
   autocmd BufNewFile,BufRead CMakeLists.txt setlocal filetype=cmake
+augroup END
+
+augroup file-type-group
+  autocmd!
+  autocmd BufNewFile,BufRead *.jsx set filetype=javascript.jsx
 augroup END
 
 set autoread
@@ -547,6 +590,17 @@ let g:ale_fixers = { 'javascript': ['eslint'], }
 " Set this setting in vimrc if you want to fix files automatically on save.
 " This is off by default.
 let g:ale_fix_on_save = 1
+let g:ale_linters = {
+    \ 'jsx': ['stylelint', 'eslint'],
+    \ 'css': ['stylelint'],
+    \ 'javascript': ['eslint'],
+    \ 'vue': ['eslint'],
+    \}
+
+let g:ale_linter_aliases = {
+    \ 'jsx': 'css',
+    \ 'vue': 'css',
+    \}
 
 " javascript
 let g:javascript_enable_domhtmlcss = 1
@@ -554,20 +608,8 @@ let g:javascript_enable_domhtmlcss = 1
 " vim-javascript
 augroup vimrc-javascript
   autocmd!
-  autocmd FileType javascript,javascript.jsx set tabstop=2|set shiftwidth=2|set expandtab softtabstop=2|call EnableJavascript()
+  autocmd FileType javascript,javascript.jsx set tabstop=2|set shiftwidth=2|set expandtab softtabstop=2
 augroup END
-
-"" for syntax setting
-function! EnableJavascript()
-  " Setup used libraries
-  let g:used_javascript_libs = 'jquery,underscore,react,flux,jasmine,d3'
-  let b:javascript_lib_use_jquery = 1
-  let b:javascript_lib_use_underscore = 1
-  let b:javascript_lib_use_react = 1
-  let b:javascript_lib_use_flux = 1
-  let b:javascript_lib_use_jasmine = 1
-  let b:javascript_lib_use_d3 = 1
-endfunction
 
 " ruby
 let g:rubycomplete_buffer_loading = 1
