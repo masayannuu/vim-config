@@ -142,6 +142,17 @@ augroup FiletypeGroup
     au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
 augroup END
 
+" auto save for insert mode
+augroup Vimrc
+  autocmd!
+  autocmd InsertLeave * call <SID>auto_save()
+  function! s:auto_save()
+    if filewritable(expand('%'))
+      write
+    endif
+  endfunction
+augroup END
+
 " ruby
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-rake'
@@ -307,7 +318,6 @@ let g:NERDTreeMapOpenInTabSilent = '<RightMouse>'
 let g:NERDTreeWinSize = 50
 let g:NERDTreeShowHidden = 1
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc,*.db,*.sqlite
-nnoremap <silent> <C-f> :NERDTreeFind<CR>
 nnoremap <silent> <C-t> :NERDTreeToggle<CR>
 
 " NERDTress File highlighting
